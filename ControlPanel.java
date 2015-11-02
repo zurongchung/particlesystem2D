@@ -1,5 +1,7 @@
 package particlesystem;
 
+import javafx.geometry.Insets;
+import javafx.geometry.Orientation;
 import javafx.scene.control.*;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -8,9 +10,8 @@ import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.input.InputEvent;
-import javafx.scene.layout.VBox;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.GridPane;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
@@ -30,13 +31,16 @@ public class ControlPanel {
     // sync Particle.amount with it
     final static int normal = 10;
     private static int amount_value = normal;      // must have a default value. else change size will cause particle amount set to none;
-    private static Double velocity_value;
+    public static Double velocity_value = 1.0;
     private static int life_time;
     // sync Particle.radius with it
     final static int defSize = 1;
     private static int size_value = defSize;
 
+    private static int tBoxWidth = 48;
+    private static int tBoxHeight = 16;
     private static Double gap = 10.0;
+    private static Insets padding = new Insets(10, 0, 10, 0);
     private static Double fontSize = 12.0;
     private static Pos align = Pos.CENTER_LEFT;
 
@@ -57,27 +61,72 @@ public class ControlPanel {
             System.out.println("panel amount: " + layoutPanels.size());
         });
 
-        layoutPanels.addAll(amount(),
+        layoutPanels.addAll(type(),
+                            amount(),
                             size(),
                             velocity(),
                             life());
 
+        Double panelWidth = 140.0;
         GridPane panelSet = new GridPane();
         panelSet.setVgap(gap);
-
-        int row = 0;
-        for (Node p : layoutPanels) {
-
-            panelSet.add(p, 0, row);
-            row++;
-        }
+        panelSet.setMinWidth(panelWidth);
 
         TitledPane panel = new TitledPane();
         panel.setText("Particles System");
         panel.setContent(panelSet);
+
+        int row = 0;
+        for (Node p : layoutPanels) {
+            Separator sp = new Separator();
+            sp.setPrefWidth(panelWidth);
+
+            VBox tmp = new VBox();
+            tmp.getChildren().add(sp);
+            tmp.getStyleClass().add("dividerContainer");
+
+            panelSet.add(p, 0, row);
+            panelSet.add(tmp, 0, row + 1);
+            row++;
+        }
+
         return panel;
     }
 
+    /**
+     * | setting panel of particles types
+     * |
+     */
+
+    public static VBox type() {
+        Tooltip tip = new Tooltip();
+        tip.setText("Change the type of particles");
+        String title = "Type";
+
+        Label type = new Label();
+        type.setText(title + ": ");
+
+        ObservableList<String> typeName = FXCollections.observableArrayList();
+        typeName.addAll("Line",
+                        "Rectangle",
+                        "Square",
+                        "Circle");
+        ComboBox t = new ComboBox(typeName);
+        t.setValue(typeName.get(3));
+        t.setTooltip(tip);
+
+        HBox h = new HBox();
+        h.setSpacing(gap);
+        h.setAlignment(align);
+        h.getChildren().addAll(type, t);
+
+        VBox v = new VBox();
+        v.setSpacing(gap);
+        v.setPadding(padding);
+        v.getStyleClass().add("panel");
+        v.getChildren().addAll(h);
+        return v;
+    }
     /**
      * | setting panel of particles amount
      * |
@@ -123,8 +172,8 @@ public class ControlPanel {
 
         };
         input.setText(Integer.toString((int) slide.getValue()));
-        input.setMaxWidth(48);
-        input.setMaxHeight(16);
+        input.setMaxWidth(tBoxWidth);
+        input.setMaxHeight(tBoxHeight);
         input.setFont(Font.font(fontSize));
         input.setTooltip(tip);
 
@@ -140,11 +189,12 @@ public class ControlPanel {
                     input.setText(typeConverter.toString(amount_value));
                     slide.setValue(amount_value);
 
+                    Particle.setAmount(amount_value);
                     /** sync Particle.amount
                      * | first clear scene
                      *  and then redraw particles
                      */
-                    Particle.redrawParticles(amount_value, size_value);
+                    Particle.redrawParticles();
 
                     break;
                 case DOWN:
@@ -156,7 +206,9 @@ public class ControlPanel {
                         input.setText(typeConverter.toString(amount_value));
                         slide.setValue(amount_value);
 
-                        Particle.redrawParticles(amount_value, size_value);
+                        Particle.setAmount(amount_value);
+
+                        Particle.redrawParticles();
 
                     }
                     break;
@@ -164,7 +216,9 @@ public class ControlPanel {
                     amount_value = typeConverter.fromString(input.getText());
                     slide.setValue(amount_value);
 
-                    Particle.redrawParticles(amount_value, size_value);
+                    Particle.setAmount(amount_value);
+
+                    Particle.redrawParticles();
 
             }
         };
@@ -177,13 +231,14 @@ public class ControlPanel {
          */
         EventHandler<MouseEvent> changeAmountByDragSlide = e -> {
             amount_value = (int) slide.getValue();
-
             input.setText(typeConverter.toString(amount_value));
+
+            Particle.setAmount(amount_value);
             /** sync Particle.amount
              * | first clear scene
              *  and then redraw particles
              */
-            Particle.redrawParticles(amount_value, size_value);
+            Particle.redrawParticles();
         };
         slide.addEventHandler(MouseEvent.MOUSE_CLICKED, changeAmountByDragSlide);
 
@@ -192,11 +247,14 @@ public class ControlPanel {
 
         HBox inputBox = new HBox();
         inputBox.setSpacing(gap);
+
         inputBox.setAlignment(align);
         inputBox.getChildren().addAll(amount, input);
 
         VBox v = new VBox();
         v.setSpacing(gap);
+        v.setPadding(padding);
+        v.getStyleClass().add("panel");
         v.getChildren().addAll(inputBox, slide);
         return v;
     }
@@ -246,8 +304,8 @@ public class ControlPanel {
 
         };
         input.setText(Integer.toString((int) slide.getValue()));
-        input.setMaxWidth(48);
-        input.setMaxHeight(16);
+        input.setMaxWidth(tBoxWidth);
+        input.setMaxHeight(tBoxHeight);
         input.setFont(Font.font(fontSize));
         input.setTooltip(tip);
 
@@ -263,11 +321,12 @@ public class ControlPanel {
                     input.setText(typeConverter.toString(size_value));
                     slide.setValue(size_value);
 
+                    Particle.setRadii(size_value);
                     /** sync Particle.amount
                      * | first clear scene
                      *  and then redraw particles
                      */
-                    Particle.redrawParticles(amount_value, size_value);
+                    Particle.redrawParticles();
 
                     break;
                 case DOWN:
@@ -279,7 +338,9 @@ public class ControlPanel {
                         input.setText(typeConverter.toString(size_value));
                         slide.setValue(size_value);
 
-                        Particle.redrawParticles(amount_value, size_value);
+                        Particle.setRadii(size_value);
+
+                        Particle.redrawParticles();
 
                     }
                     break;
@@ -287,7 +348,9 @@ public class ControlPanel {
                     size_value = typeConverter.fromString(input.getText());
                     slide.setValue(size_value);
 
-                    Particle.redrawParticles(amount_value, size_value);
+                    Particle.setRadii(size_value);
+
+                    Particle.redrawParticles();
 
             }
         };
@@ -302,11 +365,13 @@ public class ControlPanel {
             size_value = (int) slide.getValue();
 
             input.setText(typeConverter.toString(size_value));
+
+            Particle.setRadii(size_value);
             /** sync Particle.amount
              * | first clear scene
              *  and then redraw particles
              */
-            Particle.redrawParticles(amount_value, size_value);
+            Particle.redrawParticles();
         };
         slide.addEventHandler(MouseEvent.MOUSE_CLICKED, changeSizeByDragSlide);
 
@@ -320,6 +385,7 @@ public class ControlPanel {
 
         VBox v = new VBox();
         v.setSpacing(gap);
+        v.setPadding(padding);
         v.getChildren().addAll(inputBox, slide);
         return v;
     }
@@ -328,6 +394,7 @@ public class ControlPanel {
      * | setting panel of particles velocity
      * |
      */
+
     public static VBox velocity() {
         Double max = 120.0;
         Double min = 0.0;
@@ -368,8 +435,8 @@ public class ControlPanel {
 
         };
         input.setText(Integer.toString((int) slide.getValue()));
-        input.setMaxWidth(48);
-        input.setMaxHeight(16);
+        input.setMaxWidth(tBoxWidth);
+        input.setMaxHeight(tBoxHeight);
         input.setFont(Font.font(fontSize));
         input.setTooltip(tip);
 
@@ -387,6 +454,7 @@ public class ControlPanel {
                     input.setText(dtsConverter.toString(velocity_value));
                     // sync slide value with current input value
                     slide.setValue(velocity_value);
+                    Particle.setVelocity(velocity_value);
                     break;
                 case DOWN:
                     velocity_value = dtsConverter.fromString(input.getText());
@@ -394,6 +462,7 @@ public class ControlPanel {
                     input.setText(dtsConverter.toString(velocity_value));
                     // sync slide value with current input value
                     slide.setValue(velocity_value);
+                    Particle.setVelocity(velocity_value);
                     break;
             }
         };
@@ -406,6 +475,7 @@ public class ControlPanel {
 
             velocity_value = dtsConverter.fromString(input.getText());
             slide.setValue(velocity_value);
+            Particle.setVelocity(velocity_value);
         };
 
         input.addEventHandler(KeyEvent.KEY_RELEASED, changeVelocityByEnterNumber);
@@ -415,7 +485,11 @@ public class ControlPanel {
          * increase or decrease velocity by drag slide
          *
          */
-        EventHandler<MouseEvent> changeVelocityByDragSlider = e -> input.setText(dtsConverter.toString(slide.getValue()));
+        EventHandler<MouseEvent> changeVelocityByDragSlider = e -> {
+            velocity_value = slide.getValue();
+            input.setText(dtsConverter.toString(velocity_value));
+            Particle.setVelocity(velocity_value);
+        };
         slide.addEventHandler(MouseEvent.MOUSE_DRAGGED, changeVelocityByDragSlider);
         slide.addEventHandler(MouseEvent.MOUSE_CLICKED, changeVelocityByDragSlider);
 
@@ -426,6 +500,7 @@ public class ControlPanel {
 
         VBox v = new VBox();
         v.setSpacing(gap);
+        v.setPadding(padding);
         v.getChildren().addAll(inputBox, slide);
         return v;
     }
@@ -473,8 +548,8 @@ public class ControlPanel {
 
         };
         input.setText(Integer.toString((int) slide.getValue()));
-        input.setMaxWidth(48);
-        input.setMaxHeight(16);
+        input.setMaxWidth(tBoxWidth);
+        input.setMaxHeight(tBoxHeight);
         input.setFont(Font.font(fontSize));
         input.setTooltip(tip);
 
@@ -531,6 +606,7 @@ public class ControlPanel {
 
         VBox v = new VBox();
         v.setSpacing(gap);
+        v.setPadding(padding);
         v.getChildren().addAll(inputBox, slide);
         return v;
     }

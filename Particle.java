@@ -1,5 +1,6 @@
 package particlesystem;
 
+import javafx.animation.TranslateTransition;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.shape.Circle;
 import javafx.scene.paint.Color;
@@ -10,6 +11,7 @@ import javafx.collections.FXCollections;
 
 import javafx.collections.ObservableList;
 import javafx.collections.ListChangeListener;
+import javafx.util.Duration;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -27,15 +29,18 @@ public class Particle {
     private static int amount = ControlPanel.normal;
     private static Direction dir;
     private static int life;
-    private static int x;
-    private static int y;
+    private static int x = Viewport.WIDTH.getValue() / 2;;
+    private static int y = Viewport.HEIGHT.getValue() / 2;;
+    public static  int HMove = getX();
+    public static int VMove = getY();
+    private static Double velocity = ControlPanel.velocity_value;
 
 
     /**
      * | @Property for circle
      * |
      */
-    private static int radius =ControlPanel.defSize;
+    private static int radius = ControlPanel.defSize;
 
     public Particle() {}
 
@@ -54,8 +59,7 @@ public class Particle {
     }
 
     public static  Node drawCircle() {
-        setX();
-        setY();
+
         setFill(Color.rgb(0, 0, 0, 0));
         setStrokeColor(Color.rgb(252, 112, 48, 1));
         setStrokeWidth(2);
@@ -101,25 +105,35 @@ public class Particle {
         /**
          * | Draw particles to the screen
          */
-
         for (Node c : particle()) {
+
             ParticleSystem.particleSpace.getChildren().add(c);
         }
 
     }
 
     /**
+     * | make particle move
+     */
+    public static void animation(int h, int v) {
+
+        setX(h);
+        setY(v);
+        redrawParticles();
+
+    }
+
+    /**
      * | redraw particles
      * | after parameter changed
-     * |
+     * | there have another way to set value like this
+     * | see velocity() in ControlPanel ==>   ( that way Maybe better )     Particle.velocity = velocity_value;!!!!!!!!!!!!!!!!!!!!!!!
      */
-    public static void redrawParticles(int amount, int size) {
-        /**|| clear before setting any value.
+    public static void redrawParticles() {
+        /**|| clear before drawing
          * || This is very important
          */
         ParticleSystem.particleSpace.getChildren().clear();
-        setAmount(amount);
-        setRadii(size);
         drawParticles();
     }
 
@@ -138,21 +152,35 @@ public class Particle {
     /**
      * | coordinates
      */
-    public static void setX() {
+    //public static void setX() {
 
-        x = (int) Math.round(Math.random() * Viewport.WIDTH.getValue() - 50);
+       // x = (int) Math.round(Math.random() * Viewport.WIDTH.getValue() - 50);
+    //}
+    public static void setX(int _x) {
+        x = _x;
     }
 
     public static int getX() {
         return x;
     }
 
-    public static void setY() {
-        y = (int) Math.round(Math.random() * Viewport.HEIGHT.getValue() - 50);
+    //public static void setY() {
+       // y = (int) Math.round(Math.random() * Viewport.HEIGHT.getValue() - 50);
+    //}
+
+    public static void setY(int _y) {
+        y = _y;
     }
 
     public static int getY() {
         return y;
+    }
+
+    public static void setVelocity(Double v) {
+        velocity = v;
+    }
+    public static Double getVelocity() {
+        return velocity;
     }
 
     /**
