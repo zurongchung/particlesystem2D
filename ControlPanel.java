@@ -23,25 +23,29 @@ import java.util.List;
 import java.util.ArrayList;
 
 import javafx.util.converter.IntegerStringConverter;
+import javafx.util.converter.DoubleStringConverter;
 
 public class ControlPanel {
 
-    private static int amount_value;
-    private static int velocity_value;
+    // sync Particle.amount with it
+    final static int normal = 10;
+    private static int amount_value = normal;      // must have a default value. else change size will cause particle amount set to none;
+    private static Double velocity_value;
     private static int life_time;
-    private static int size_value;
+    // sync Particle.radius with it
+    final static int defSize = 1;
+    private static int size_value = defSize;
+
     private static Double gap = 10.0;
     private static Double fontSize = 12.0;
     private static Pos align = Pos.CENTER_LEFT;
 
     static IntegerStringConverter typeConverter = new IntegerStringConverter();
+    static DoubleStringConverter dtsConverter = new DoubleStringConverter();
 
     public ControlPanel() {}
 
-    /**
-     * | setting panel of velocity
-     * |
-     */
+
     public static TitledPane particleControl() {
 
         List<Node> panels = new ArrayList<>();
@@ -54,9 +58,9 @@ public class ControlPanel {
         });
 
         layoutPanels.addAll(amount(),
+                            size(),
                             velocity(),
-                            life(),
-                            size());
+                            life());
 
         GridPane panelSet = new GridPane();
         panelSet.setVgap(gap);
@@ -78,9 +82,6 @@ public class ControlPanel {
      * | setting panel of particles amount
      * |
      */
-    // sync Particle.amount's value with it
-    final static int normal = 10;
-
     public static VBox amount() {
 
         int max = 100;
@@ -201,12 +202,135 @@ public class ControlPanel {
     }
 
     /**
+     * | setting panel of particles size
+     * |
+     */
+    public static VBox size() {
+
+        int max = 100;
+        int min = 1;
+
+        String title = "size";
+
+        Tooltip tip = new Tooltip();
+        tip.setText("How big each particle is");
+
+        Slider slide = new Slider();
+        slide.setMax(max);
+        slide.setMin(min);
+        slide.setValue(defSize);
+        slide.setSnapToTicks(true);
+        slide.setBlockIncrement(1);
+        slide.setTooltip(tip);
+
+        Label size = new Label();
+        size.setText(title + ": ");
+
+        /**
+         * Only accept numerical value
+         */
+
+        TextField input = new TextField() {
+            @Override
+            public void replaceText(int start, int end, String text) {
+                if (!text.matches("[a-z]")) {
+                    super.replaceText(start, end, text);
+                }
+            }
+            @Override
+            public void replaceSelection(String text) {
+                if (!text.matches("[a-z]")) {
+                    super.replaceSelection(text);
+                }
+            }
+
+        };
+        input.setText(Integer.toString((int) slide.getValue()));
+        input.setMaxWidth(48);
+        input.setMaxHeight(16);
+        input.setFont(Font.font(fontSize));
+        input.setTooltip(tip);
+
+        /**
+         * increase or decrease amount by press a key
+         *
+         */
+        EventHandler<KeyEvent> changeSizeByPressKey = e -> {
+            switch (e.getCode()) {
+                case UP:
+                    size_value = typeConverter.fromString(input.getText());
+                    size_value += 1;
+                    input.setText(typeConverter.toString(size_value));
+                    slide.setValue(size_value);
+
+                    /** sync Particle.amount
+                     * | first clear scene
+                     *  and then redraw particles
+                     */
+                    Particle.redrawParticles(amount_value, size_value);
+
+                    break;
+                case DOWN:
+                    size_value = typeConverter.fromString(input.getText());
+                    if (size_value <= 1) {
+                        break;
+                    }else {
+                        size_value -= 1;
+                        input.setText(typeConverter.toString(size_value));
+                        slide.setValue(size_value);
+
+                        Particle.redrawParticles(amount_value, size_value);
+
+                    }
+                    break;
+                case ENTER:
+                    size_value = typeConverter.fromString(input.getText());
+                    slide.setValue(size_value);
+
+                    Particle.redrawParticles(amount_value, size_value);
+
+            }
+        };
+
+        input.addEventHandler(KeyEvent.KEY_PRESSED, changeSizeByPressKey);
+
+        /**
+         * increase or decrease amount by drag slide
+         *
+         */
+        EventHandler<MouseEvent> changeSizeByDragSlide = e -> {
+            size_value = (int) slide.getValue();
+
+            input.setText(typeConverter.toString(size_value));
+            /** sync Particle.amount
+             * | first clear scene
+             *  and then redraw particles
+             */
+            Particle.redrawParticles(amount_value, size_value);
+        };
+        slide.addEventHandler(MouseEvent.MOUSE_CLICKED, changeSizeByDragSlide);
+
+        /*||------ Even value reached maximum, Drag event still exist ------||*/
+        slide.addEventHandler(MouseEvent.MOUSE_DRAGGED, changeSizeByDragSlide);
+
+        HBox inputBox = new HBox();
+        inputBox.setSpacing(gap);
+        inputBox.setAlignment(align);
+        inputBox.getChildren().addAll(size, input);
+
+        VBox v = new VBox();
+        v.setSpacing(gap);
+        v.getChildren().addAll(inputBox, slide);
+        return v;
+    }
+
+    /**
      * | setting panel of particles velocity
      * |
      */
     public static VBox velocity() {
-        int max = 120;
-        int min = 0;
+        Double max = 120.0;
+        Double min = 0.0;
         String title = "velocity";
 
         Tooltip tip = new Tooltip();
@@ -216,7 +340,7 @@ public class ControlPanel {
         slide.setMin(min);
         slide.setMax(max);
         slide.setValue(min);
-        slide.setBlockIncrement(1);
+        slide.setBlockIncrement(1.0);
         slide.setSnapToTicks(true);
         slide.setTooltip(tip);
 
@@ -258,16 +382,16 @@ public class ControlPanel {
 
             switch (e.getCode()) {
                 case UP:
-                    velocity_value = typeConverter.fromString(input.getText());
+                    velocity_value = dtsConverter.fromString(input.getText());
                     velocity_value += 1;
-                    input.setText(typeConverter.toString(velocity_value));
+                    input.setText(dtsConverter.toString(velocity_value));
                     // sync slide value with current input value
                     slide.setValue(velocity_value);
                     break;
                 case DOWN:
-                    velocity_value = typeConverter.fromString(input.getText());
+                    velocity_value = dtsConverter.fromString(input.getText());
                     velocity_value -= 1;
-                    input.setText(typeConverter.toString(velocity_value));
+                    input.setText(dtsConverter.toString(velocity_value));
                     // sync slide value with current input value
                     slide.setValue(velocity_value);
                     break;
@@ -280,7 +404,7 @@ public class ControlPanel {
          */
         EventHandler<KeyEvent> changeVelocityByEnterNumber = e -> {
 
-            velocity_value = typeConverter.fromString(input.getText());
+            velocity_value = dtsConverter.fromString(input.getText());
             slide.setValue(velocity_value);
         };
 
@@ -291,7 +415,7 @@ public class ControlPanel {
          * increase or decrease velocity by drag slide
          *
          */
-        EventHandler<MouseEvent> changeVelocityByDragSlider = e -> input.setText(typeConverter.toString((int)slide.getValue()));
+        EventHandler<MouseEvent> changeVelocityByDragSlider = e -> input.setText(dtsConverter.toString(slide.getValue()));
         slide.addEventHandler(MouseEvent.MOUSE_DRAGGED, changeVelocityByDragSlider);
         slide.addEventHandler(MouseEvent.MOUSE_CLICKED, changeVelocityByDragSlider);
 
@@ -411,124 +535,6 @@ public class ControlPanel {
         return v;
     }
 
-    final static int defSize = 1;
-    public static VBox size() {
 
-        int max = 100;
-        int min = 1;
-
-        String title = "size";
-
-        Tooltip tip = new Tooltip();
-        tip.setText("How big each particle is");
-
-        Slider slide = new Slider();
-        slide.setMax(max);
-        slide.setMin(min);
-        slide.setValue(defSize);
-        slide.setSnapToTicks(true);
-        slide.setBlockIncrement(1);
-        slide.setTooltip(tip);
-
-        Label size = new Label();
-        size.setText(title + ": ");
-
-        /**
-         * Only accept numerical value
-         */
-
-        TextField input = new TextField() {
-            @Override
-            public void replaceText(int start, int end, String text) {
-                if (!text.matches("[a-z]")) {
-                    super.replaceText(start, end, text);
-                }
-            }
-            @Override
-            public void replaceSelection(String text) {
-                if (!text.matches("[a-z]")) {
-                    super.replaceSelection(text);
-                }
-            }
-
-        };
-        input.setText(Integer.toString((int) slide.getValue()));
-        input.setMaxWidth(48);
-        input.setMaxHeight(16);
-        input.setFont(Font.font(fontSize));
-        input.setTooltip(tip);
-
-        /**
-         * increase or decrease amount by press a key
-         *
-         */
-        EventHandler<KeyEvent> changeSizeByPressKey = e -> {
-            switch (e.getCode()) {
-                case UP:
-                    size_value = typeConverter.fromString(input.getText());
-                    size_value += 1;
-                    input.setText(typeConverter.toString(size_value));
-                    slide.setValue(size_value);
-
-                    /** sync Particle.amount
-                     * | first clear scene
-                     *  and then redraw particles
-                     */
-                    Particle.redrawParticles(amount_value, size_value);
-
-                    break;
-                case DOWN:
-                    size_value = typeConverter.fromString(input.getText());
-                    if (size_value <= 1) {
-                        break;
-                    }else {
-                        size_value -= 1;
-                        input.setText(typeConverter.toString(size_value));
-                        slide.setValue(size_value);
-
-                        Particle.redrawParticles(amount_value, size_value);
-
-                    }
-                    break;
-                case ENTER:
-                    size_value = typeConverter.fromString(input.getText());
-                    slide.setValue(size_value);
-
-                    Particle.redrawParticles(amount_value, size_value);
-
-            }
-        };
-
-        input.addEventHandler(KeyEvent.KEY_PRESSED, changeSizeByPressKey);
-
-        /**
-         * increase or decrease amount by drag slide
-         *
-         */
-        EventHandler<MouseEvent> changeSizeByDragSlide = e -> {
-            size_value = (int) slide.getValue();
-
-            input.setText(typeConverter.toString(size_value));
-            /** sync Particle.amount
-             * | first clear scene
-             *  and then redraw particles
-             */
-            Particle.redrawParticles(amount_value, size_value);
-        };
-        slide.addEventHandler(MouseEvent.MOUSE_CLICKED, changeSizeByDragSlide);
-
-        /*||------ Even value reached maximum, Drag event still exist ------||*/
-        slide.addEventHandler(MouseEvent.MOUSE_DRAGGED, changeSizeByDragSlide);
-
-        HBox inputBox = new HBox();
-        inputBox.setSpacing(gap);
-        inputBox.setAlignment(align);
-        inputBox.getChildren().addAll(size, input);
-
-        VBox v = new VBox();
-        v.setSpacing(gap);
-        v.getChildren().addAll(inputBox, slide);
-        return v;
-    }
 
 }
