@@ -15,16 +15,15 @@ import javafx.scene.paint.LinearGradient;
 
 public class ParticleSystem extends Application {
     static Group root = new Group();
-
+    static Group particleSpace = new Group();
     @Override
     public void start(Stage stage) throws Exception{
-        root.getChildren().add(panelContainer());
 
+        root.getChildren().addAll(panelContainer(), particleSpace);
         /**
          * | Draw particles to the screen
          */
-        Particle circle = new Particle();
-        circle.drawParticles();
+        Particle.drawParticles();
 
         Stop[] stop = new Stop[]{
                 new Stop(0, Color.web("#6A260D")),

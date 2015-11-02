@@ -24,26 +24,20 @@ public class Particle {
     private static Color strokeColor;
     private static Color fill;
     private static int strokeWidth;
-    private static int amount = 10;
+    private static int amount = ControlPanel.normal;
     private static Direction dir;
     private static int life;
-    private int x;
-    private int y;
+    private static int x;
+    private static int y;
 
 
     /**
      * | @Property for circle
      * |
      */
-    private static Double radius;
+    private static int radius =ControlPanel.defSize;
 
     public Particle() {}
-
-    // circle
-    public Particle(int _x, int _y) {
-        this.x              = _x;
-        this.y              = _y;
-    }
 
     // Effects
     public static Bloom glowing() {
@@ -59,10 +53,9 @@ public class Particle {
         return lighten;
     }
 
-    public  Node drawCircle() {
+    public static  Node drawCircle() {
         setX();
         setY();
-        setRadii();
         setFill(Color.rgb(0, 0, 0, 0));
         setStrokeColor(Color.rgb(252, 112, 48, 1));
         setStrokeWidth(2);
@@ -81,7 +74,7 @@ public class Particle {
         return circle;
     }
 
-    public ObservableList<Node> particle() {
+    public static ObservableList<Node> particle() {
 
 
         /**
@@ -104,16 +97,32 @@ public class Particle {
         return particles;
     }
 
-    public void drawParticles() {
+    public static void drawParticles() {
         /**
          * | Draw particles to the screen
          */
 
-        for (Node c : this.particle()) {
-            ParticleSystem.root.getChildren().add(c);
+        for (Node c : particle()) {
+            ParticleSystem.particleSpace.getChildren().add(c);
         }
 
     }
+
+    /**
+     * | redraw particles
+     * | after parameter changed
+     * |
+     */
+    public static void redrawParticles(int amount, int size) {
+        /**|| clear before setting any value.
+         * || This is very important
+         */
+        ParticleSystem.particleSpace.getChildren().clear();
+        setAmount(amount);
+        setRadii(size);
+        drawParticles();
+    }
+
     /**
      * | set & retrieve amount of particles
      * |
@@ -129,37 +138,33 @@ public class Particle {
     /**
      * | coordinates
      */
-    public void setX() {
+    public static void setX() {
 
-        this.x = (int) Math.round(Math.random() * Viewport.WIDTH.getValue() - 50);
+        x = (int) Math.round(Math.random() * Viewport.WIDTH.getValue() - 50);
     }
 
-    public int getX() {
-        return this.x;
+    public static int getX() {
+        return x;
     }
 
-    public void setY() {
-        this.y = (int) Math.round(Math.random() * Viewport.HEIGHT.getValue() - 50);
+    public static void setY() {
+        y = (int) Math.round(Math.random() * Viewport.HEIGHT.getValue() - 50);
     }
 
-    public int getY() {
-        return this.y;
+    public static int getY() {
+        return y;
     }
 
     /**
      * Size of circles @Radius
-     * | @param Default radius
      * | @param Custom radius
      */
-    public static void setRadii() {
-        radius = 8.0;
-    }
 
-    public static void setRadii(Double r) {
+    public static void setRadii(int r) {
         radius = r;
     }
 
-    public static Double getRadii() {
+    public static int getRadii() {
         return radius;
     }
 
