@@ -136,7 +136,7 @@ public class ControlPanel {
         int max = 100;
         int min = 1;
 
-        String title = "amount";
+        String identity = "amount";
 
         Tooltip tip = new Tooltip();
         tip.setText("How much particles need to generate");
@@ -150,13 +150,13 @@ public class ControlPanel {
         slide.setTooltip(tip);
 
         Label amount = new Label();
-        amount.setText(title + ": ");
+        amount.setText(identity + ": ");
 
         /**
          * Only accept numerical value
          */
 
-        TextField input = new TextField() {
+        TextField amount_field = new TextField() {
             @Override
             public void replaceText(int start, int end, String text) {
                 if (!text.matches("[a-z]")) {
@@ -171,11 +171,11 @@ public class ControlPanel {
             }
 
         };
-        input.setText(Integer.toString((int) slide.getValue()));
-        input.setMaxWidth(tBoxWidth);
-        input.setMaxHeight(tBoxHeight);
-        input.setFont(Font.font(fontSize));
-        input.setTooltip(tip);
+        amount_field.setText(Integer.toString((int) slide.getValue()));
+        amount_field.setMaxWidth(tBoxWidth);
+        amount_field.setMaxHeight(tBoxHeight);
+        amount_field.setFont(Font.font(fontSize));
+        amount_field.setTooltip(tip);
 
         /**
          * increase or decrease amount by press a key
@@ -184,62 +184,24 @@ public class ControlPanel {
         EventHandler<KeyEvent> changeAmountByPressKey = e -> {
             switch (e.getCode()) {
                 case UP:
-                    amount_value = typeConverter.fromString(input.getText());
-                    amount_value += 1;
-                    input.setText(typeConverter.toString(amount_value));
-                    slide.setValue(amount_value);
-
-                    Particle.setAmount(amount_value);
-                    /** sync Particle.amount
-                     * | first clear scene
-                     *  and then redraw particles
-                     */
-                    Particle.redrawParticles();
-
+                    actionCtrl(e, amount_field, slide, identity);
                     break;
                 case DOWN:
-                    amount_value = typeConverter.fromString(input.getText());
-                    if (amount_value <= 1) {
-                        break;
-                    }else {
-                        amount_value -= 1;
-                        input.setText(typeConverter.toString(amount_value));
-                        slide.setValue(amount_value);
-
-                        Particle.setAmount(amount_value);
-
-                        Particle.redrawParticles();
-
-                    }
+                    actionCtrl(e, amount_field, slide, identity);
                     break;
                 case ENTER:
-                    amount_value = typeConverter.fromString(input.getText());
-                    slide.setValue(amount_value);
-
-                    Particle.setAmount(amount_value);
-
-                    Particle.redrawParticles();
-
+                    actionCtrl(e, amount_field, slide, identity);
             }
         };
 
-        input.addEventHandler(KeyEvent.KEY_PRESSED, changeAmountByPressKey);
+        amount_field.addEventHandler(KeyEvent.KEY_PRESSED, changeAmountByPressKey);
 
         /**
          * increase or decrease amount by drag slide
          *
          */
-        EventHandler<MouseEvent> changeAmountByDragSlide = e -> {
-            amount_value = (int) slide.getValue();
-            input.setText(typeConverter.toString(amount_value));
+        EventHandler<MouseEvent> changeAmountByDragSlide = e -> slideCtrl(amount_field, slide, identity);
 
-            Particle.setAmount(amount_value);
-            /** sync Particle.amount
-             * | first clear scene
-             *  and then redraw particles
-             */
-            Particle.redrawParticles();
-        };
         slide.addEventHandler(MouseEvent.MOUSE_CLICKED, changeAmountByDragSlide);
 
         /*||------ Even value reached maximum, Drag event still exist ------||*/
@@ -249,7 +211,7 @@ public class ControlPanel {
         inputBox.setSpacing(gap);
 
         inputBox.setAlignment(align);
-        inputBox.getChildren().addAll(amount, input);
+        inputBox.getChildren().addAll(amount, amount_field);
 
         VBox v = new VBox();
         v.setSpacing(gap);
@@ -268,7 +230,7 @@ public class ControlPanel {
         int max = 100;
         int min = 1;
 
-        String title = "size";
+        String identity = "size";
 
         Tooltip tip = new Tooltip();
         tip.setText("How big each particle is");
@@ -282,13 +244,13 @@ public class ControlPanel {
         slide.setTooltip(tip);
 
         Label size = new Label();
-        size.setText(title + ": ");
+        size.setText(identity + ": ");
 
         /**
          * Only accept numerical value
          */
 
-        TextField input = new TextField() {
+        TextField size_field = new TextField() {
             @Override
             public void replaceText(int start, int end, String text) {
                 if (!text.matches("[a-z]")) {
@@ -303,11 +265,11 @@ public class ControlPanel {
             }
 
         };
-        input.setText(Integer.toString((int) slide.getValue()));
-        input.setMaxWidth(tBoxWidth);
-        input.setMaxHeight(tBoxHeight);
-        input.setFont(Font.font(fontSize));
-        input.setTooltip(tip);
+        size_field.setText(Integer.toString((int) slide.getValue()));
+        size_field.setMaxWidth(tBoxWidth);
+        size_field.setMaxHeight(tBoxHeight);
+        size_field.setFont(Font.font(fontSize));
+        size_field.setTooltip(tip);
 
         /**
          * increase or decrease amount by press a key
@@ -316,34 +278,26 @@ public class ControlPanel {
         EventHandler<KeyEvent> changeSizeByPressKey = e -> {
             switch (e.getCode()) {
                 case UP:
-                    size_ActCtrl(e, input, slide, title);
+                    actionCtrl(e, size_field, slide, identity);
                     break;
                 case DOWN:
-                    size_ActCtrl(e, input, slide, title);
+                    actionCtrl(e, size_field, slide, identity);
                     break;
                 case ENTER:
-                    size_ActCtrl(e, input, slide, title);
+                    actionCtrl(e, size_field, slide, identity);
                     break;
 
             }
         };
 
-        input.addEventHandler(KeyEvent.KEY_PRESSED, changeSizeByPressKey);
+        size_field.addEventHandler(KeyEvent.KEY_PRESSED, changeSizeByPressKey);
 
         /**
          * increase or decrease amount by drag slide
          *
          */
-        EventHandler<MouseEvent> changeSizeByDragSlide = e -> {
-            size_value = (int)slideCtrl(input, slide);
+        EventHandler<MouseEvent> changeSizeByDragSlide = e -> slideCtrl(size_field, slide, identity);
 
-            Particle.setRadii(size_value);
-            /** sync Particle.amount
-             * | first clear scene
-             *  and then redraw particles
-             */
-            Particle.redrawParticles();
-        };
         slide.addEventHandler(MouseEvent.MOUSE_CLICKED, changeSizeByDragSlide);
 
         /*||------ Even value reached maximum, Drag event still exist ------||*/
@@ -352,7 +306,7 @@ public class ControlPanel {
         HBox inputBox = new HBox();
         inputBox.setSpacing(gap);
         inputBox.setAlignment(align);
-        inputBox.getChildren().addAll(size, input);
+        inputBox.getChildren().addAll(size, size_field);
 
         VBox v = new VBox();
         v.setSpacing(gap);
@@ -365,7 +319,6 @@ public class ControlPanel {
      * | setting panel of particles velocity
      * |
      */
-
     public static VBox velocity() {
         Double max = 40.0;
         Double min = -40.0;
@@ -512,10 +465,10 @@ public class ControlPanel {
          */
         EventHandler<MouseEvent> changeVelocityByDragSlider = e -> {
             if (slideBelong.getText().equals("to " + vxHint)) {
-                vx_value = slideCtrl(vxField, slide);
+                vx_value = v_slideCtrl(vxField, slide);
                 Particle.setVx(vx_value);
             }else if (slideBelong.getText().equals("to " + vyHint)) {
-                vy_value = slideCtrl(vyField, slide);
+                vy_value = v_slideCtrl(vyField, slide);
                 Particle.setVy(vy_value);
             }else {
                 System.out.println("Slider did not belong to anyone");
@@ -548,7 +501,7 @@ public class ControlPanel {
     public static VBox life() {
         int max = Viewport.WIDTH.getValue();
         int min = 1;
-        String title = "life";
+        String identity = "life";
 
         Tooltip tip = new Tooltip();
         tip.setText("How far they can goes before they die");
@@ -562,13 +515,13 @@ public class ControlPanel {
         slide.setTooltip(tip);
 
         Label label = new Label();
-        label.setText(title + ": ");
+        label.setText(identity + ": ");
 
         /**
          * Only accept numerical input
          *
          */
-        TextField input = new TextField() {
+        TextField life_field = new TextField() {
             @Override
             public void replaceText(int start, int end, String text) {
                 if (!text.matches("[a-z]")) {
@@ -583,11 +536,11 @@ public class ControlPanel {
             }
 
         };
-        input.setText(Integer.toString((int) slide.getValue()));
-        input.setMaxWidth(tBoxWidth);
-        input.setMaxHeight(tBoxHeight);
-        input.setFont(Font.font(fontSize));
-        input.setTooltip(tip);
+        life_field.setText(Integer.toString((int) slide.getValue()));
+        life_field.setMaxWidth(tBoxWidth);
+        life_field.setMaxHeight(tBoxHeight);
+        life_field.setFont(Font.font(fontSize));
+        life_field.setTooltip(tip);
 
         /**
          * increase or decrease velocity by press a key
@@ -598,31 +551,31 @@ public class ControlPanel {
 
             switch (e.getCode()) {
                 case UP:
-                    life_ActCtrl(e, input, slide);
+                    life_ActCtrl(e, life_field, slide);
                     break;
                 case DOWN:
-                    life_ActCtrl(e, input, slide);
+                    life_ActCtrl(e, life_field, slide);
                     break;
                 case ENTER:
-                    life_ActCtrl(e, input, slide);
+                    life_ActCtrl(e, life_field, slide);
                     break;
             }
         };
 
-        input.addEventHandler(KeyEvent.KEY_PRESSED, changeVelocityByPressKey);
+        life_field.addEventHandler(KeyEvent.KEY_PRESSED, changeVelocityByPressKey);
 
         /**
          * increase or decrease velocity by drag slide
          *
          */
-        EventHandler<MouseEvent> changeVelocityByDragSlider = e -> input.setText(typeConverter.toString((int)slide.getValue()));
+        EventHandler<MouseEvent> changeVelocityByDragSlider = e -> slideCtrl(life_field, slide, identity);
         slide.addEventHandler(MouseEvent.MOUSE_DRAGGED, changeVelocityByDragSlider);
         slide.addEventHandler(MouseEvent.MOUSE_CLICKED, changeVelocityByDragSlider);
 
         HBox inputBox = new HBox();
         inputBox.setSpacing(gap);
         inputBox.setAlignment(align);
-        inputBox.getChildren().addAll(label, input);
+        inputBox.getChildren().addAll(label, life_field);
 
         VBox v = new VBox();
         v.setSpacing(gap);
@@ -661,7 +614,7 @@ public class ControlPanel {
         slide.setValue(value);
         return value;
     }
-    public static void size_ActCtrl(KeyEvent e, TextField field, Slider slide, String identity) {
+    public static void actionCtrl(KeyEvent e, TextField field, Slider slide, String identity) {
         int value;
         value = typeConverter.fromString(field.getText());
 
@@ -669,7 +622,7 @@ public class ControlPanel {
             value += 1;
             field.setText(typeConverter.toString(value));
         } else if (e.getCode() == KeyCode.DOWN) {
-            if (value >= 1) value -= 1;
+            if (value > 1) value -= 1;
             field.setText(typeConverter.toString(value));
         }
         slide.setValue(value);
@@ -684,12 +637,29 @@ public class ControlPanel {
     }
 
     // common uses
-    public static double slideCtrl(TextField field, Slider slide){
+    public static void slideCtrl(TextField field, Slider slide, String identity){
+        int value;
+        value = (int)slide.getValue();
+        field.setText(typeConverter.toString(value));
+
+        switch (identity) {
+            case "amount":
+                Particle.setAmount(value);
+                break;
+            case "size":
+                Particle.setRadii(value);
+                break;
+            case "life":
+                Particle.setLife(value);
+                break;
+        }
+
+        Particle.redrawParticles();
+    }
+    public static double v_slideCtrl(TextField field, Slider slide){
         double value;
         value = slide.getValue();
         field.setText(dtsConverter.toString(value));
         return value;
     }
-
-
 }
