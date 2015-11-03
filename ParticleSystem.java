@@ -30,8 +30,7 @@ public class ParticleSystem extends Application {
          * | Draw particles to the screen
          */
 
-
-        Particle.animation(Particle.HMove, Particle.VMove);
+        Particle.drawParticles();
 
         Stop[] stop = new Stop[]{
                 new Stop(0, Color.web("#6A260D")),

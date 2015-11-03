@@ -23,16 +23,16 @@ public class Particle {
      * |
      */
     private static final Double G = 9.81; // 32.2ft
-    private static Color strokeColor;
-    private static Color fill;
+    private static Color strokeColor = Color.rgb(255, 255, 255, 1);
+    private static Color fill = Color.rgb(255, 255, 255, 1);
     private static int strokeWidth;
     private static int amount = ControlPanel.normal;
     private static Direction dir;
     private static int life;
-    private static int x = Viewport.WIDTH.getValue() / 2;;
-    private static int y = Viewport.HEIGHT.getValue() / 2;;
-    public static  int HMove = getX();
-    public static int VMove = getY();
+    private static long x = Viewport.WIDTH.getValue() / 2;;
+    private static long y = Viewport.HEIGHT.getValue() / 2;;
+    //public static  long HMove = getX();
+    //public static long VMove = getY();
     private static Double vx = ControlPanel.defVelocity;
     private static Double vy = ControlPanel.defVelocity;
 
@@ -61,18 +61,21 @@ public class Particle {
 
     public static  Node drawCircle() {
 
+        x += vx;
+        y += vy;
+
         setFill(Color.rgb(0, 0, 0, 0));
         setStrokeColor(Color.rgb(252, 112, 48, 1));
         setStrokeWidth(2);
 
         Circle circle = new Circle();
-        circle.setCenterX(getX());
-        circle.setCenterY(getY());
-        circle.setRadius(getRadii());
-        circle.setFill(getFill());
+        circle.setCenterX(x);
+        circle.setCenterY(y);
+        circle.setRadius(radius);
+        circle.setFill(fill);
 
-        circle.setStrokeWidth(getStrokeWidth());
-        circle.setStroke(getStrokeColor());
+        circle.setStrokeWidth(strokeWidth);
+        circle.setStroke(strokeColor);
 
         circle.setEffect(glowing());
 
@@ -114,17 +117,6 @@ public class Particle {
     }
 
     /**
-     * | make particle move
-     */
-    public static void animation(int h, int v) {
-
-        setX(h);
-        setY(v);
-        redrawParticles();
-
-    }
-
-    /**
      * | redraw particles
      * | after parameter changed
      * | there have another way to set value like this
@@ -153,30 +145,26 @@ public class Particle {
     /**
      * | coordinates
      */
-    //public static void setX() {
-
-       // x = (int) Math.round(Math.random() * Viewport.WIDTH.getValue() - 50);
-    //}
-    public static void setX(int _x) {
+    public static void setX(long _x) {
         x = _x;
     }
 
-    public static int getX() {
+    public static long getX() {
         return x;
     }
 
-    //public static void setY() {
-       // y = (int) Math.round(Math.random() * Viewport.HEIGHT.getValue() - 50);
-    //}
-
-    public static void setY(int _y) {
+    public static void setY(long _y) {
         y = _y;
     }
 
-    public static int getY() {
+    public static long getY() {
         return y;
     }
 
+    /**
+     * Velocity of circles @velocity
+     * | @param Custom velocity
+     */
     public static void setVx(Double v) {
         vx = v;
     }
@@ -205,13 +193,9 @@ public class Particle {
 
     /**
      * Color of particles @Fill
-     * | @param Default fill
+     * |
      * | @param Custom fill
      */
-    public static void setFill() {
-        fill = Color.rgb(255, 255, 255, 1);
-    }
-
     public static void setFill(Color color) {
         fill = color;
     }
@@ -222,13 +206,9 @@ public class Particle {
 
     /**
      * Color of particles @Stroke color
-     * | @param Default stroke color
+     * |
      * | @param Custom stroke color
      */
-    public static void setStrokeColor() {
-        strokeColor = Color.rgb(255, 255, 255, 1);
-    }
-
     public static void setStrokeColor(Color color) {
         strokeColor = color;
     }
@@ -238,7 +218,8 @@ public class Particle {
     }
 
     /**
-     * | stroke width
+     * | Width of particle @Stroke width
+     * |
      */
     public static void setStrokeWidth(int s_width) {
         strokeWidth = s_width;
@@ -248,6 +229,10 @@ public class Particle {
         return strokeWidth;
     }
 
+    /**
+     * | Life of particle @life
+     * |
+     */
     public static void setLife(int _life) {
         life = _life;
     }

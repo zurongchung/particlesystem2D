@@ -323,8 +323,8 @@ public class ControlPanel {
         Double max = 40.0;
         Double min = -40.0;
         String title = "velocity";
-        String vxHint = "vx";
-        String vyHint = "vy";
+        String vxId = "vx";
+        String vyId = "vy";
 
         Tooltip vxTip = new Tooltip();
         vxTip.setText("How fast the particle moves along x axis");
@@ -342,10 +342,10 @@ public class ControlPanel {
         Label label = new Label();
         label.setText(title);
         Label vxLabel = new Label();
-        vxLabel.setText(vxHint + ": ");
+        vxLabel.setText(vxId + ": ");
         Label vyLabel = new Label();
-        vyLabel.setText(vyHint + ": ");
-        Label slideBelong = new Label("to " + vxHint);
+        vyLabel.setText(vyId + ": ");
+        Label slideBelong = new Label("to " + vxId);
         slideBelong.setLabelFor(slide);
 
         /**
@@ -404,34 +404,15 @@ public class ControlPanel {
 
         EventHandler<KeyEvent> changeVelocityByPressKey = e -> {
 
-
             switch (e.getCode()) {
                 case UP:
-                    if (e.getTarget().equals(vxField)) {
-                        vx_value = v_ActCtrl(e, vxField, slide);
-                        Particle.setVx(vx_value);
-                    }else {
-                        vy_value = v_ActCtrl(e, vyField, slide);
-                        Particle.setVy(vy_value);
-                    }
+                    v_ActCtrl(e, vxField, vyField, slide);
                     break;
                 case DOWN:
-                    if (e.getTarget().equals(vxField)) {
-                        vx_value = v_ActCtrl(e, vxField, slide);
-                        Particle.setVx(vx_value);
-                    }else {
-                        vy_value = v_ActCtrl(e, vyField, slide);
-                        Particle.setVy(vy_value);
-                    }
+                    v_ActCtrl(e, vxField, vyField, slide);
                     break;
                 case ENTER:
-                    if (e.getTarget().equals(vxField)) {
-                        vx_value = v_ActCtrl(e, vxField, slide);
-                        Particle.setVx(vx_value);
-                    }else {
-                        vy_value = v_ActCtrl(e, vyField, slide);
-                        Particle.setVy(vy_value);
-                    }
+                    v_ActCtrl(e, vxField, vyField, slide);
                     break;
             }
 
@@ -444,10 +425,10 @@ public class ControlPanel {
             if (e.getButton().equals(MouseButton.PRIMARY)) {
                 if (e.getTarget().equals(vxField)) {
                     System.out.println("vx " + e.getTarget().equals(vxField));
-                    slideBelong.setText("to " + vxHint);
+                    slideBelong.setText("to " + vxId);
                 }else if (e.getTarget().equals(vyField)) {
                     System.out.println("vy " + e.getTarget().equals(vyField));
-                    slideBelong.setText("to " + vyHint);
+                    slideBelong.setText("to " + vyId);
                 }
             }
         };
@@ -464,10 +445,10 @@ public class ControlPanel {
          *
          */
         EventHandler<MouseEvent> changeVelocityByDragSlider = e -> {
-            if (slideBelong.getText().equals("to " + vxHint)) {
+            if (slideBelong.getText().equals("to " + vxId)) {
                 vx_value = v_slideCtrl(vxField, slide);
                 Particle.setVx(vx_value);
-            }else if (slideBelong.getText().equals("to " + vyHint)) {
+            }else if (slideBelong.getText().equals("to " + vyId)) {
                 vy_value = v_slideCtrl(vyField, slide);
                 Particle.setVy(vy_value);
             }else {
@@ -600,10 +581,13 @@ public class ControlPanel {
 
         Particle.redrawParticles();
     }
-    public static double v_ActCtrl(KeyEvent e, TextField field, Slider slide) {
+    public static void v_ActCtrl(KeyEvent e, TextField vx, TextField vy, Slider slide) {
         double value;
-        value = dtsConverter.fromString(field.getText());
+        TextField field = vx;
 
+        if (!e.getTarget().equals(vx)) field = vy;
+
+        value = dtsConverter.fromString(field.getText());
         if (e.getCode() == KeyCode.UP) {
             value += 1;
             field.setText(dtsConverter.toString(value));
@@ -613,7 +597,14 @@ public class ControlPanel {
         }
         // sync slide value with current input value
         slide.setValue(value);
-        return value;
+
+        if (e.getTarget().equals(vx)) {
+            Particle.setVx(value);
+        }else {
+            Particle.setVy(value);
+        }
+
+        Particle.redrawParticles();
     }
     public static double v_slideCtrl(TextField field, Slider slide){
         double value;
