@@ -1,6 +1,6 @@
 package particlesystem;
 
-import javafx.animation.TranslateTransition;
+import javafx.animation.AnimationTimer;
 import javafx.scene.effect.BlendMode;
 import javafx.scene.shape.Circle;
 import javafx.scene.paint.Color;
@@ -11,7 +11,6 @@ import javafx.collections.FXCollections;
 
 import javafx.collections.ObservableList;
 import javafx.collections.ListChangeListener;
-import javafx.util.Duration;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -28,13 +27,12 @@ public class Particle {
     private static int strokeWidth;
     private static int amount = ControlPanel.normal;
     private static Direction dir;
-    private static int life;
-    private static long x = Viewport.WIDTH.getValue() / 2;;
-    private static long y = Viewport.HEIGHT.getValue() / 2;;
-    //public static  long HMove = getX();
-    //public static long VMove = getY();
-    private static Double vx = ControlPanel.defVelocity;
-    private static Double vy = ControlPanel.defVelocity;
+    private static int life = 0;
+    private static int maxLife = ControlPanel.defMaxLife;
+    private double x = Viewport.WIDTH.getValue() / 2.0;
+    private double y = Viewport.HEIGHT.getValue() / 2.0;
+    private double vx = Math.random() * 10 - 5;
+    private double vy = Math.random() * 10 - 5;
 
 
     /**
@@ -59,10 +57,12 @@ public class Particle {
         return lighten;
     }
 
-    public static  Node drawCircle() {
+    public Node drawCircle() {
 
-        x += vx;
-        y += vy;
+        x += this.vx;
+        y += this.vy;
+        vy *= 1.9;
+        vx *= 1.6;
 
         setFill(Color.rgb(0, 0, 0, 0));
         setStrokeColor(Color.rgb(252, 112, 48, 1));
@@ -82,7 +82,7 @@ public class Particle {
         return circle;
     }
 
-    public static ObservableList<Node> particle() {
+    public ObservableList<Node> particle() {
 
 
         /**
@@ -98,14 +98,14 @@ public class Particle {
 
         int i = 0;
         for (; i < getAmount(); ++i) {
-            particles.add(drawCircle());
+            particles.add(this.drawCircle());
         }
 
 
         return particles;
     }
 
-    public static void drawParticles() {
+    public void drawParticles() {
         /**
          * | Draw particles to the screen
          */
@@ -126,8 +126,19 @@ public class Particle {
         /**|| clear before drawing
          * || This is very important
          */
-        ParticleSystem.particleSpace.getChildren().clear();
-        drawParticles();
+        new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                ParticleSystem.particleSpace.getChildren().clear();
+
+                int i = 0;
+                for (; i < Particle.getAmount(); ++i) {
+                    new Particle().drawParticles();
+                }
+            }
+        }.start();
+
+
     }
 
     /**
@@ -145,37 +156,37 @@ public class Particle {
     /**
      * | coordinates
      */
-    public static void setX(long _x) {
-        x = _x;
+    public void setX(double _x) {
+        this.x = _x;
     }
 
-    public static long getX() {
-        return x;
+    public double getX() {
+        return this.x;
     }
 
-    public static void setY(long _y) {
-        y = _y;
+    public void setY(double _y) {
+        this.y = _y;
     }
 
-    public static long getY() {
-        return y;
+    public double getY() {
+        return this.y;
     }
 
     /**
      * Velocity of circles @velocity
      * | @param Custom velocity
      */
-    public static void setVx(Double v) {
-        vx = v;
+    public void setVx(double _vx) {
+        this.vx = _vx;
     }
-    public static Double getVx() {
-        return vx;
+    public double getVx() {
+        return this.vx;
     }
-    public static void setVy(Double v) {
-        vy = v;
+    public void setVy(double _vy) {
+        this.vy = _vy;
     }
-    public static Double getVy() {
-        return vy;
+    public double getVy() {
+        return this.vy;
     }
 
     /**
@@ -233,10 +244,10 @@ public class Particle {
      * | Life of particle @life
      * |
      */
-    public static void setLife(int _life) {
-        life = _life;
+    public static void setMaxLifeLife(int _maxLife) {
+        maxLife = _maxLife;
     }
-    public static int getLife() {
-        return life;
+    public static int getMaxLifeLife() {
+        return maxLife;
     }
 }

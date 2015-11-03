@@ -1,14 +1,7 @@
 package particlesystem;
 
-import javafx.animation.AnimationTimer;
-import javafx.animation.TranslateTransition;
 import javafx.application.Application;
-import javafx.event.EventHandler;
-import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.TextField;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.CycleMethod;
@@ -16,7 +9,6 @@ import javafx.scene.paint.Stop;
 import javafx.stage.Stage;
 import javafx.scene.Group;
 import javafx.scene.paint.LinearGradient;
-import javafx.animation.Animation;
 
 
 public class ParticleSystem extends Application {
@@ -30,7 +22,10 @@ public class ParticleSystem extends Application {
          * | Draw particles to the screen
          */
 
-        Particle.drawParticles();
+        long starTime = System.nanoTime();
+        System.out.println(starTime);
+
+        Particle.redrawParticles();
 
         Stop[] stop = new Stop[]{
                 new Stop(0, Color.web("#6A260D")),

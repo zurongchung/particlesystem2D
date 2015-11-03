@@ -1,18 +1,13 @@
 package particlesystem;
 
-import javafx.event.Event;
 import javafx.geometry.Insets;
-import javafx.geometry.Orientation;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.layout.*;
-import javafx.scene.paint.Color;
-import javafx.scene.text.Text;
 import javafx.scene.text.Font;
-import javafx.scene.text.FontWeight;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -27,21 +22,17 @@ import javafx.util.converter.DoubleStringConverter;
 public class ControlPanel {
 
     // sync Particle.amount with it
-    final static int normal = 10;
-    private static int amount_value = normal;      // must have a default value. else change size will cause particle amount set to none;
-    public static Double defVelocity = 1.0;
-    public static Double vy_value = 1.0;
-    public static Double vx_value = 1.0;
-    private static int life_time;
+    final static int normal = 3;
+    final static int defMaxLife = 300;
+    public static double defVelocity = 0.09;
     // sync Particle.radius with it
     final static int defSize = 1;
-    private static int size_value = defSize;
 
     private static int tBoxWidth = 48;
     private static int tBoxHeight = 16;
-    private static Double gap = 10.0;
+    private static double gap = 10.0;
     private static Insets padding = new Insets(10, 0, 10, 0);
-    private static Double fontSize = 12.0;
+    private static double fontSize = 12.0;
     private static Pos align = Pos.CENTER_LEFT;
 
     static IntegerStringConverter typeConverter = new IntegerStringConverter();
@@ -56,10 +47,7 @@ public class ControlPanel {
 
         ObservableList<Node> layoutPanels = FXCollections.observableList(panels);
 
-        layoutPanels.addListener((ListChangeListener<Node>) c -> {
-
-            System.out.println("panel amount: " + layoutPanels.size());
-        });
+        layoutPanels.addListener((ListChangeListener<Node>) c -> System.out.println("panel amount: " + layoutPanels.size()));
 
         layoutPanels.addAll(type(),
                             amount(),
@@ -106,19 +94,19 @@ public class ControlPanel {
         Label type = new Label();
         type.setText(title + ": ");
 
-        ObservableList<String> typeName = FXCollections.observableArrayList();
-        typeName.addAll("Line",
+        ObservableList<String> items = FXCollections.observableArrayList();
+        items.addAll("Line",
                         "Rectangle",
                         "Square",
                         "Circle");
-        ComboBox t = new ComboBox(typeName);
-        t.setValue(typeName.get(3));
-        t.setTooltip(tip);
+        ComboBox typeList = new ComboBox(items);
+        typeList.setValue(items.get(3));
+        typeList.setTooltip(tip);
 
         HBox h = new HBox();
         h.setSpacing(gap);
         h.setAlignment(align);
-        h.getChildren().addAll(type, t);
+        h.getChildren().addAll(type, typeList);
 
         VBox v = new VBox();
         v.setSpacing(gap);
@@ -320,8 +308,8 @@ public class ControlPanel {
      * |
      */
     public static VBox velocity() {
-        Double max = 40.0;
-        Double min = -40.0;
+        double max = 40.0;
+        double min = -40.0;
         String title = "velocity";
         String vxId = "vx";
         String vyId = "vy";
@@ -368,7 +356,7 @@ public class ControlPanel {
             }
 
         };
-        vxField.setText(typeConverter.toString((int) slide.getValue()));
+        vxField.setText(dtsConverter.toString(slide.getValue()));
         vxField.setMaxWidth(tBoxWidth);
         vxField.setMaxHeight(tBoxHeight);
         vxField.setFont(Font.font(fontSize));
@@ -389,7 +377,7 @@ public class ControlPanel {
             }
 
         };
-        vyField.setText(typeConverter.toString((int) slide.getValue()));
+        vyField.setText(dtsConverter.toString(slide.getValue()));
         vyField.setMaxWidth(tBoxWidth);
         vyField.setMaxHeight(tBoxHeight);
         vyField.setFont(Font.font(fontSize));
@@ -400,8 +388,6 @@ public class ControlPanel {
          * increase or decrease velocity by press a key
          *
          */
-
-
         EventHandler<KeyEvent> changeVelocityByPressKey = e -> {
 
             switch (e.getCode()) {
@@ -433,6 +419,12 @@ public class ControlPanel {
             }
         };
 
+        /**
+         * increase or decrease velocity by drag slide
+         *
+         */
+        EventHandler<MouseEvent> changeVelocityByDragSlider = e -> v_slideCtrl(slideBelong, vxField, vyField, slide);
+
         // vx
         vxField.addEventHandler(KeyEvent.KEY_PRESSED, changeVelocityByPressKey);
         vxField.addEventHandler(MouseEvent.MOUSE_CLICKED, changeSlideBelong);
@@ -440,22 +432,6 @@ public class ControlPanel {
         vyField.addEventHandler(KeyEvent.KEY_PRESSED, changeVelocityByPressKey);
         vyField.addEventHandler(MouseEvent.MOUSE_CLICKED, changeSlideBelong);
 
-        /**
-         * increase or decrease velocity by drag slide
-         *
-         */
-        EventHandler<MouseEvent> changeVelocityByDragSlider = e -> {
-            if (slideBelong.getText().equals("to " + vxId)) {
-                vx_value = v_slideCtrl(vxField, slide);
-                Particle.setVx(vx_value);
-            }else if (slideBelong.getText().equals("to " + vyId)) {
-                vy_value = v_slideCtrl(vyField, slide);
-                Particle.setVy(vy_value);
-            }else {
-                System.out.println("Slider did not belong to anyone");
-            }
-
-        };
         slide.addEventHandler(MouseEvent.MOUSE_DRAGGED, changeVelocityByDragSlider);
         slide.addEventHandler(MouseEvent.MOUSE_CLICKED, changeVelocityByDragSlider);
 
@@ -490,7 +466,7 @@ public class ControlPanel {
         Slider slide = new Slider();
         slide.setMin(min);
         slide.setMax(max);
-        slide.setValue(min);
+        slide.setValue(defMaxLife);
         slide.setBlockIncrement(1);
         slide.setSnapToTicks(true);
         slide.setTooltip(tip);
@@ -597,20 +573,29 @@ public class ControlPanel {
         }
         // sync slide value with current input value
         slide.setValue(value);
-
+/*
         if (e.getTarget().equals(vx)) {
+            //Particle.setVx(value);
+        }else {
+            //Particle.setVy(value);
+        }
+*/
+        Particle.redrawParticles();
+    }
+    public static void v_slideCtrl(Label belongTo, TextField vx, TextField vy, Slider slide){
+        double value;
+        TextField field = vx;
+        if (!belongTo.getText().equals("to vx")) field = vy;
+
+        value = slide.getValue();
+        field.setText(dtsConverter.toString(value));
+
+       /* if (belongTo.getText().equals("to vx")) {
             Particle.setVx(value);
         }else {
             Particle.setVy(value);
-        }
-
+        }*/
         Particle.redrawParticles();
-    }
-    public static double v_slideCtrl(TextField field, Slider slide){
-        double value;
-        value = slide.getValue();
-        field.setText(dtsConverter.toString(value));
-        return value;
     }
 
     // common uses
@@ -620,7 +605,7 @@ public class ControlPanel {
         field.setText(typeConverter.toString(value));
         identify(identity, value);
 
-        Particle.redrawParticles();
+        //Particle.redrawParticles();
     }
     public static void identify(String id, int _value) {
         switch (id) {
@@ -631,7 +616,7 @@ public class ControlPanel {
                 Particle.setRadii(_value);
                 break;
             case "life":
-                Particle.setLife(_value);
+                Particle.setMaxLifeLife(_value);
                 break;
         }
     }
