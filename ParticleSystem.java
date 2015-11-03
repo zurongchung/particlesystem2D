@@ -1,5 +1,6 @@
 package particlesystem;
 
+import javafx.animation.AnimationTimer;
 import javafx.animation.TranslateTransition;
 import javafx.application.Application;
 import javafx.event.EventHandler;
@@ -28,30 +29,7 @@ public class ParticleSystem extends Application {
         /**
          * | Draw particles to the screen
          */
-        root.addEventHandler(KeyEvent.KEY_PRESSED, e -> {
-            switch (e.getCode()) {
-                case UP:
-                    Particle.VMove -= Particle.getVelocity();
-                    System.out.println("up");
-                    break;
-                case DOWN:
-                    Particle.VMove += Particle.getVelocity();
-                    System.out.println("down");
-                    break;
-                case LEFT:
-                    Particle.HMove -= Particle.getVelocity();
-                    System.out.println("left");
-                    break;
-                case RIGHT:
-                    Particle.HMove += Particle.getVelocity();
-                    System.out.println("right");
-                    break;
-                default:
-                    System.out.println("Hit the Wrong key.");
-            }
 
-            Particle.animation(Particle.HMove, Particle.VMove);
-        });
 
         Particle.animation(Particle.HMove, Particle.VMove);
 

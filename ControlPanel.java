@@ -1,15 +1,13 @@
 package particlesystem;
 
+import javafx.event.Event;
 import javafx.geometry.Insets;
 import javafx.geometry.Orientation;
 import javafx.scene.control.*;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.input.*;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.input.InputEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
@@ -31,7 +29,9 @@ public class ControlPanel {
     // sync Particle.amount with it
     final static int normal = 10;
     private static int amount_value = normal;      // must have a default value. else change size will cause particle amount set to none;
-    public static Double velocity_value = 1.0;
+    public static Double defVelocity = 1.0;
+    public static Double vy_value = 1.0;
+    public static Double vx_value = 1.0;
     private static int life_time;
     // sync Particle.radius with it
     final static int defSize = 1;
@@ -316,41 +316,14 @@ public class ControlPanel {
         EventHandler<KeyEvent> changeSizeByPressKey = e -> {
             switch (e.getCode()) {
                 case UP:
-                    size_value = typeConverter.fromString(input.getText());
-                    size_value += 1;
-                    input.setText(typeConverter.toString(size_value));
-                    slide.setValue(size_value);
-
-                    Particle.setRadii(size_value);
-                    /** sync Particle.amount
-                     * | first clear scene
-                     *  and then redraw particles
-                     */
-                    Particle.redrawParticles();
-
+                    size_ActCtrl(e, input, slide, title);
                     break;
                 case DOWN:
-                    size_value = typeConverter.fromString(input.getText());
-                    if (size_value <= 1) {
-                        break;
-                    }else {
-                        size_value -= 1;
-                        input.setText(typeConverter.toString(size_value));
-                        slide.setValue(size_value);
-
-                        Particle.setRadii(size_value);
-
-                        Particle.redrawParticles();
-
-                    }
+                    size_ActCtrl(e, input, slide, title);
                     break;
                 case ENTER:
-                    size_value = typeConverter.fromString(input.getText());
-                    slide.setValue(size_value);
-
-                    Particle.setRadii(size_value);
-
-                    Particle.redrawParticles();
+                    size_ActCtrl(e, input, slide, title);
+                    break;
 
             }
         };
@@ -362,9 +335,7 @@ public class ControlPanel {
          *
          */
         EventHandler<MouseEvent> changeSizeByDragSlide = e -> {
-            size_value = (int) slide.getValue();
-
-            input.setText(typeConverter.toString(size_value));
+            size_value = (int)slideCtrl(input, slide);
 
             Particle.setRadii(size_value);
             /** sync Particle.amount
@@ -396,30 +367,40 @@ public class ControlPanel {
      */
 
     public static VBox velocity() {
-        Double max = 120.0;
-        Double min = 0.0;
+        Double max = 40.0;
+        Double min = -40.0;
         String title = "velocity";
+        String vxHint = "vx";
+        String vyHint = "vy";
 
-        Tooltip tip = new Tooltip();
-        tip.setText("How fast the particle moves");
+        Tooltip vxTip = new Tooltip();
+        vxTip.setText("How fast the particle moves along x axis");
+        Tooltip vyTip = new Tooltip();
+        vyTip.setText("How fast the particle moves along y axis");
 
         Slider slide = new Slider();
         slide.setMin(min);
         slide.setMax(max);
-        slide.setValue(min);
+        slide.setValue(defVelocity);
         slide.setBlockIncrement(1.0);
         slide.setSnapToTicks(true);
-        slide.setTooltip(tip);
+        //slide.setTooltip(tip);
 
         Label label = new Label();
-        label.setText(title + ": ");
+        label.setText(title);
+        Label vxLabel = new Label();
+        vxLabel.setText(vxHint + ": ");
+        Label vyLabel = new Label();
+        vyLabel.setText(vyHint + ": ");
+        Label slideBelong = new Label("to " + vxHint);
+        slideBelong.setLabelFor(slide);
 
         /**
          * Only accept numerical input
          *
          */
 
-        TextField input = new TextField() {
+        TextField vxField = new TextField() {
             @Override
             public void replaceText(int start, int end, String text) {
                 if (!text.matches("[a-z]")) {
@@ -434,74 +415,129 @@ public class ControlPanel {
             }
 
         };
-        input.setText(Integer.toString((int) slide.getValue()));
-        input.setMaxWidth(tBoxWidth);
-        input.setMaxHeight(tBoxHeight);
-        input.setFont(Font.font(fontSize));
-        input.setTooltip(tip);
+        vxField.setText(typeConverter.toString((int) slide.getValue()));
+        vxField.setMaxWidth(tBoxWidth);
+        vxField.setMaxHeight(tBoxHeight);
+        vxField.setFont(Font.font(fontSize));
+        vxField.setTooltip(vxTip);
+
+        TextField vyField = new TextField() {
+            @Override
+            public void replaceText(int start, int end, String text) {
+                if (!text.matches("[a-z]")) {
+                    super.replaceText(start, end, text);
+                }
+            }
+            @Override
+            public void replaceSelection(String text) {
+                if (!text.matches("[a-z]")) {
+                    super.replaceSelection(text);
+                }
+            }
+
+        };
+        vyField.setText(typeConverter.toString((int) slide.getValue()));
+        vyField.setMaxWidth(tBoxWidth);
+        vyField.setMaxHeight(tBoxHeight);
+        vyField.setFont(Font.font(fontSize));
+        vyField.setTooltip(vyTip);
+
 
         /**
          * increase or decrease velocity by press a key
          *
          */
 
+
         EventHandler<KeyEvent> changeVelocityByPressKey = e -> {
+
 
             switch (e.getCode()) {
                 case UP:
-                    velocity_value = dtsConverter.fromString(input.getText());
-                    velocity_value += 1;
-                    input.setText(dtsConverter.toString(velocity_value));
-                    // sync slide value with current input value
-                    slide.setValue(velocity_value);
-                    Particle.setVelocity(velocity_value);
+                    if (e.getTarget().equals(vxField)) {
+                        vx_value = v_ActCtrl(e, vxField, slide);
+                        Particle.setVx(vx_value);
+                    }else {
+                        vy_value = v_ActCtrl(e, vyField, slide);
+                        Particle.setVy(vy_value);
+                    }
                     break;
                 case DOWN:
-                    velocity_value = dtsConverter.fromString(input.getText());
-                    velocity_value -= 1;
-                    input.setText(dtsConverter.toString(velocity_value));
-                    // sync slide value with current input value
-                    slide.setValue(velocity_value);
-                    Particle.setVelocity(velocity_value);
+                    if (e.getTarget().equals(vxField)) {
+                        vx_value = v_ActCtrl(e, vxField, slide);
+                        Particle.setVx(vx_value);
+                    }else {
+                        vy_value = v_ActCtrl(e, vyField, slide);
+                        Particle.setVy(vy_value);
+                    }
+                    break;
+                case ENTER:
+                    if (e.getTarget().equals(vxField)) {
+                        vx_value = v_ActCtrl(e, vxField, slide);
+                        Particle.setVx(vx_value);
+                    }else {
+                        vy_value = v_ActCtrl(e, vyField, slide);
+                        Particle.setVy(vy_value);
+                    }
                     break;
             }
+
         };
 
         /**
-         * increase or decrease amount by Enter numbers
-         *
+         * | auto detect which one ( vx or vy) to change
          */
-        EventHandler<KeyEvent> changeVelocityByEnterNumber = e -> {
-
-            velocity_value = dtsConverter.fromString(input.getText());
-            slide.setValue(velocity_value);
-            Particle.setVelocity(velocity_value);
+        EventHandler<MouseEvent> changeSlideBelong = e -> {
+            if (e.getButton().equals(MouseButton.PRIMARY)) {
+                if (e.getTarget().equals(vxField)) {
+                    System.out.println("vx " + e.getTarget().equals(vxField));
+                    slideBelong.setText("to " + vxHint);
+                }else if (e.getTarget().equals(vyField)) {
+                    System.out.println("vy " + e.getTarget().equals(vyField));
+                    slideBelong.setText("to " + vyHint);
+                }
+            }
         };
 
-        input.addEventHandler(KeyEvent.KEY_RELEASED, changeVelocityByEnterNumber);
-        input.addEventHandler(KeyEvent.KEY_PRESSED, changeVelocityByPressKey);
+        // vx
+        vxField.addEventHandler(KeyEvent.KEY_PRESSED, changeVelocityByPressKey);
+        vxField.addEventHandler(MouseEvent.MOUSE_CLICKED, changeSlideBelong);
+        // vy
+        vyField.addEventHandler(KeyEvent.KEY_PRESSED, changeVelocityByPressKey);
+        vyField.addEventHandler(MouseEvent.MOUSE_CLICKED, changeSlideBelong);
 
         /**
          * increase or decrease velocity by drag slide
          *
          */
         EventHandler<MouseEvent> changeVelocityByDragSlider = e -> {
-            velocity_value = slide.getValue();
-            input.setText(dtsConverter.toString(velocity_value));
-            Particle.setVelocity(velocity_value);
+            if (slideBelong.getText().equals("to " + vxHint)) {
+                vx_value = slideCtrl(vxField, slide);
+                Particle.setVx(vx_value);
+            }else if (slideBelong.getText().equals("to " + vyHint)) {
+                vy_value = slideCtrl(vyField, slide);
+                Particle.setVy(vy_value);
+            }else {
+                System.out.println("Slider did not belong to anyone");
+            }
+
         };
         slide.addEventHandler(MouseEvent.MOUSE_DRAGGED, changeVelocityByDragSlider);
         slide.addEventHandler(MouseEvent.MOUSE_CLICKED, changeVelocityByDragSlider);
 
-        HBox inputBox = new HBox();
-        inputBox.setSpacing(gap);
-        inputBox.setAlignment(align);
-        inputBox.getChildren().addAll(label, input);
+        HBox vxWrap = new HBox();
+        vxWrap.setSpacing(gap);
+        vxWrap.setAlignment(align);
+        vxWrap.getChildren().addAll(vxLabel, vxField);
+        HBox vyWrap = new HBox();
+        vyWrap.setSpacing(gap);
+        vyWrap.setAlignment(align);
+        vyWrap.getChildren().addAll(vyLabel, vyField);
 
         VBox v = new VBox();
         v.setSpacing(gap);
         v.setPadding(padding);
-        v.getChildren().addAll(inputBox, slide);
+        v.getChildren().addAll(vxWrap, vyWrap, slideBelong,slide);
         return v;
     }
 
@@ -562,33 +598,17 @@ public class ControlPanel {
 
             switch (e.getCode()) {
                 case UP:
-                    life_time = typeConverter.fromString(input.getText());
-                    life_time += 1;
-                    input.setText(typeConverter.toString(life_time));
-                    // sync slide value with current input value
-                    slide.setValue(life_time);
+                    life_ActCtrl(e, input, slide);
                     break;
                 case DOWN:
-                    life_time = typeConverter.fromString(input.getText());
-                    life_time -= 1;
-                    input.setText(typeConverter.toString(life_time));
-                    // sync slide value with current input value
-                    slide.setValue(life_time);
+                    life_ActCtrl(e, input, slide);
+                    break;
+                case ENTER:
+                    life_ActCtrl(e, input, slide);
                     break;
             }
         };
 
-        /**
-         * increase or decrease amount by Enter numbers
-         *
-         */
-        EventHandler<KeyEvent> changeVelocityByEnterNumber = e -> {
-
-            life_time = typeConverter.fromString(input.getText());
-            slide.setValue(life_time);
-        };
-
-        input.addEventHandler(KeyEvent.KEY_RELEASED, changeVelocityByEnterNumber);
         input.addEventHandler(KeyEvent.KEY_PRESSED, changeVelocityByPressKey);
 
         /**
@@ -611,6 +631,65 @@ public class ControlPanel {
         return v;
     }
 
+    public static void life_ActCtrl(KeyEvent e, TextField field, Slider slide){
+        int life;
+        life = typeConverter.fromString(field.getText());
+        if (e.getCode() == KeyCode.UP) {
+            life += 1;
+            field.setText(typeConverter.toString(life));
+        } else if (e.getCode() == KeyCode.DOWN) {
+            life -= 1;
+            field.setText(typeConverter.toString(life));
+        }
+
+        // sync slide value with current input value
+        slide.setValue(life);
+        Particle.setLife(life);
+    }
+    public static double v_ActCtrl(KeyEvent e, TextField field, Slider slide) {
+        double value;
+        value = dtsConverter.fromString(field.getText());
+
+        if (e.getCode() == KeyCode.UP) {
+            value += 1;
+            field.setText(dtsConverter.toString(value));
+        }else if (e.getCode() == KeyCode.DOWN) {
+            value -= 1;
+            field.setText(dtsConverter.toString(value));
+        }
+        // sync slide value with current input value
+        slide.setValue(value);
+        return value;
+    }
+    public static void size_ActCtrl(KeyEvent e, TextField field, Slider slide, String identity) {
+        int value;
+        value = typeConverter.fromString(field.getText());
+
+        if (e.getCode() == KeyCode.UP) {
+            value += 1;
+            field.setText(typeConverter.toString(value));
+        } else if (e.getCode() == KeyCode.DOWN) {
+            if (value >= 1) value -= 1;
+            field.setText(typeConverter.toString(value));
+        }
+        slide.setValue(value);
+
+        if (identity.equals("amount")) {
+            Particle.setAmount(value);
+        } else if (identity.equals("size")) {
+            Particle.setRadii(value);
+        }
+
+        Particle.redrawParticles();
+    }
+
+    // common uses
+    public static double slideCtrl(TextField field, Slider slide){
+        double value;
+        value = slide.getValue();
+        field.setText(dtsConverter.toString(value));
+        return value;
+    }
 
 
 }

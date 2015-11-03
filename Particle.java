@@ -33,7 +33,8 @@ public class Particle {
     private static int y = Viewport.HEIGHT.getValue() / 2;;
     public static  int HMove = getX();
     public static int VMove = getY();
-    private static Double velocity = ControlPanel.velocity_value;
+    private static Double vx = ControlPanel.defVelocity;
+    private static Double vy = ControlPanel.defVelocity;
 
 
     /**
@@ -176,11 +177,17 @@ public class Particle {
         return y;
     }
 
-    public static void setVelocity(Double v) {
-        velocity = v;
+    public static void setVx(Double v) {
+        vx = v;
     }
-    public static Double getVelocity() {
-        return velocity;
+    public static Double getVx() {
+        return vx;
+    }
+    public static void setVy(Double v) {
+        vy = v;
+    }
+    public static Double getVy() {
+        return vy;
     }
 
     /**
@@ -241,4 +248,10 @@ public class Particle {
         return strokeWidth;
     }
 
+    public static void setLife(int _life) {
+        life = _life;
+    }
+    public static int getLife() {
+        return life;
+    }
 }
