@@ -22,9 +22,9 @@ import javafx.util.converter.DoubleStringConverter;
 public class ControlPanel {
 
     // sync Particle.amount with it
-    final static int normal = 3;
+    final static int defParticleNum = 2;
     final static int defMaxLife = 300;
-    public static double defVelocity = 0.09;
+    public static double defVelocity = 0.1;
     // sync Particle.radius with it
     final static int defSize = 1;
 
@@ -121,7 +121,7 @@ public class ControlPanel {
      */
     public static VBox amount() {
 
-        int max = 100;
+        int max = 30;
         int min = 1;
 
         String identity = "amount";
@@ -132,7 +132,7 @@ public class ControlPanel {
         Slider slide = new Slider();
         slide.setMax(max);
         slide.setMin(min);
-        slide.setValue(normal);
+        slide.setValue(defParticleNum);
         slide.setSnapToTicks(true);
         slide.setBlockIncrement(1);
         slide.setTooltip(tip);
@@ -204,7 +204,6 @@ public class ControlPanel {
         VBox v = new VBox();
         v.setSpacing(gap);
         v.setPadding(padding);
-        v.getStyleClass().add("panel");
         v.getChildren().addAll(inputBox, slide);
         return v;
     }
@@ -555,7 +554,7 @@ public class ControlPanel {
         slide.setValue(value);
         identify(identity, value);
 
-        Particle.redrawParticles();
+        new Particle().drawParticles();
     }
     public static void v_ActCtrl(KeyEvent e, TextField vx, TextField vy, Slider slide) {
         double value;
@@ -573,14 +572,14 @@ public class ControlPanel {
         }
         // sync slide value with current input value
         slide.setValue(value);
-/*
+
         if (e.getTarget().equals(vx)) {
-            //Particle.setVx(value);
+            new Particle().setVx(value);
         }else {
-            //Particle.setVy(value);
+            new Particle().setVy(value);
         }
-*/
-        Particle.redrawParticles();
+
+        new Particle().drawParticles();
     }
     public static void v_slideCtrl(Label belongTo, TextField vx, TextField vy, Slider slide){
         double value;
@@ -590,12 +589,12 @@ public class ControlPanel {
         value = slide.getValue();
         field.setText(dtsConverter.toString(value));
 
-       /* if (belongTo.getText().equals("to vx")) {
-            Particle.setVx(value);
+       if (belongTo.getText().equals("to vx")) {
+           new Particle().setVx(value);
         }else {
-            Particle.setVy(value);
-        }*/
-        Particle.redrawParticles();
+            new Particle().setVy(value);
+        }
+        new Particle().drawParticles();
     }
 
     // common uses
@@ -605,7 +604,7 @@ public class ControlPanel {
         field.setText(typeConverter.toString(value));
         identify(identity, value);
 
-        //Particle.redrawParticles();
+        new Particle().drawParticles();
     }
     public static void identify(String id, int _value) {
         switch (id) {

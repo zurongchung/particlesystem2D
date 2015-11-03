@@ -21,11 +21,11 @@ public class Particle {
      * | Common @Property
      * |
      */
-    private static final Double G = 9.81; // 32.2ft
+    private static final double G = 9.81; // 32.2ft
     private static Color strokeColor = Color.rgb(255, 255, 255, 1);
     private static Color fill = Color.rgb(255, 255, 255, 1);
     private static int strokeWidth;
-    private static int amount = ControlPanel.normal;
+    private static int amount = ControlPanel.defParticleNum;
     private static Direction dir;
     private static int life = 0;
     private static int maxLife = ControlPanel.defMaxLife;
@@ -59,18 +59,18 @@ public class Particle {
 
     public Node drawCircle() {
 
-        x += this.vx;
-        y += this.vy;
-        vy *= 1.9;
-        vx *= 1.6;
+        this.x += this.vx;
+        this.y += this.vy;
+        vy += 0.2;
+        //vx *= 1.6;
 
-        setFill(Color.rgb(0, 0, 0, 0));
-        setStrokeColor(Color.rgb(252, 112, 48, 1));
-        setStrokeWidth(2);
+        setFill(Color.rgb(252, 112, 48, 0.8));
+        //setStrokeColor(Color.rgb(252, 112, 48, 1));
+        //setStrokeWidth(2);
 
         Circle circle = new Circle();
-        circle.setCenterX(x);
-        circle.setCenterY(y);
+        circle.setCenterX(this.x);
+        circle.setCenterY(this.y);
         circle.setRadius(radius);
         circle.setFill(fill);
 
@@ -83,13 +83,10 @@ public class Particle {
     }
 
     public ObservableList<Node> particle() {
-
-
         /**
          * | !important @Needed List. because we need delete particle
          * | when times right || ex: life time reaches maximum ||
          */
-
         List<Node> list = new ArrayList<>();
         ObservableList<Node> particles = FXCollections.observableList(list);
         particles.addListener((ListChangeListener<Node>) c -> {
@@ -97,11 +94,10 @@ public class Particle {
         });
 
         int i = 0;
+
         for (; i < getAmount(); ++i) {
-            particles.add(this.drawCircle());
+            particles.add(drawCircle());
         }
-
-
         return particles;
     }
 
@@ -109,35 +105,19 @@ public class Particle {
         /**
          * | Draw particles to the screen
          */
-        for (Node c : particle()) {
-
-            ParticleSystem.particleSpace.getChildren().add(c);
-        }
-
-    }
-
-    /**
-     * | redraw particles
-     * | after parameter changed
-     * | there have another way to set value like this
-     * | see velocity() in ControlPanel ==>   ( that way Maybe better )     Particle.velocity = velocity_value;!!!!!!!!!!!!!!!!!!!!!!!
-     */
-    public static void redrawParticles() {
-        /**|| clear before drawing
-         * || This is very important
-         */
         new AnimationTimer() {
             @Override
             public void handle(long now) {
                 ParticleSystem.particleSpace.getChildren().clear();
 
-                int i = 0;
-                for (; i < Particle.getAmount(); ++i) {
-                    new Particle().drawParticles();
+                for (Node c : particle()) {
+
+                    ParticleSystem.particleSpace.getChildren().add(c);
                 }
+
+
             }
         }.start();
-
 
     }
 

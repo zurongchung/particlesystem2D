@@ -25,7 +25,7 @@ public class ParticleSystem extends Application {
         long starTime = System.nanoTime();
         System.out.println(starTime);
 
-        Particle.redrawParticles();
+        new Particle().drawParticles();
 
         Stop[] stop = new Stop[]{
                 new Stop(0, Color.web("#6A260D")),
