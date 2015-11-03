@@ -171,7 +171,7 @@ public class ControlPanel {
             }
 
         };
-        amount_field.setText(Integer.toString((int) slide.getValue()));
+        amount_field.setText(typeConverter.toString((int) slide.getValue()));
         amount_field.setMaxWidth(tBoxWidth);
         amount_field.setMaxHeight(tBoxHeight);
         amount_field.setFont(Font.font(fontSize));
@@ -265,7 +265,7 @@ public class ControlPanel {
             }
 
         };
-        size_field.setText(Integer.toString((int) slide.getValue()));
+        size_field.setText(typeConverter.toString((int) slide.getValue()));
         size_field.setMaxWidth(tBoxWidth);
         size_field.setMaxHeight(tBoxHeight);
         size_field.setFont(Font.font(fontSize));
@@ -551,13 +551,13 @@ public class ControlPanel {
 
             switch (e.getCode()) {
                 case UP:
-                    life_ActCtrl(e, life_field, slide);
+                    actionCtrl(e, life_field, slide, identity);
                     break;
                 case DOWN:
-                    life_ActCtrl(e, life_field, slide);
+                    actionCtrl(e, life_field, slide, identity);
                     break;
                 case ENTER:
-                    life_ActCtrl(e, life_field, slide);
+                    actionCtrl(e, life_field, slide, identity);
                     break;
             }
         };
@@ -584,20 +584,21 @@ public class ControlPanel {
         return v;
     }
 
-    public static void life_ActCtrl(KeyEvent e, TextField field, Slider slide){
-        int life;
-        life = typeConverter.fromString(field.getText());
-        if (e.getCode() == KeyCode.UP) {
-            life += 1;
-            field.setText(typeConverter.toString(life));
-        } else if (e.getCode() == KeyCode.DOWN) {
-            life -= 1;
-            field.setText(typeConverter.toString(life));
-        }
+    public static void actionCtrl(KeyEvent e, TextField field, Slider slide, String identity) {
+        int value;
+        value = typeConverter.fromString(field.getText());
 
-        // sync slide value with current input value
-        slide.setValue(life);
-        Particle.setLife(life);
+        if (e.getCode() == KeyCode.UP) {
+            value += 1;
+            field.setText(typeConverter.toString(value));
+        } else if (e.getCode() == KeyCode.DOWN) {
+            if (value > 1) value -= 1;
+            field.setText(typeConverter.toString(value));
+        }
+        slide.setValue(value);
+        identify(identity, value);
+
+        Particle.redrawParticles();
     }
     public static double v_ActCtrl(KeyEvent e, TextField field, Slider slide) {
         double value;
@@ -614,26 +615,11 @@ public class ControlPanel {
         slide.setValue(value);
         return value;
     }
-    public static void actionCtrl(KeyEvent e, TextField field, Slider slide, String identity) {
-        int value;
-        value = typeConverter.fromString(field.getText());
-
-        if (e.getCode() == KeyCode.UP) {
-            value += 1;
-            field.setText(typeConverter.toString(value));
-        } else if (e.getCode() == KeyCode.DOWN) {
-            if (value > 1) value -= 1;
-            field.setText(typeConverter.toString(value));
-        }
-        slide.setValue(value);
-
-        if (identity.equals("amount")) {
-            Particle.setAmount(value);
-        } else if (identity.equals("size")) {
-            Particle.setRadii(value);
-        }
-
-        Particle.redrawParticles();
+    public static double v_slideCtrl(TextField field, Slider slide){
+        double value;
+        value = slide.getValue();
+        field.setText(dtsConverter.toString(value));
+        return value;
     }
 
     // common uses
@@ -641,25 +627,21 @@ public class ControlPanel {
         int value;
         value = (int)slide.getValue();
         field.setText(typeConverter.toString(value));
-
-        switch (identity) {
-            case "amount":
-                Particle.setAmount(value);
-                break;
-            case "size":
-                Particle.setRadii(value);
-                break;
-            case "life":
-                Particle.setLife(value);
-                break;
-        }
+        identify(identity, value);
 
         Particle.redrawParticles();
     }
-    public static double v_slideCtrl(TextField field, Slider slide){
-        double value;
-        value = slide.getValue();
-        field.setText(dtsConverter.toString(value));
-        return value;
+    public static void identify(String id, int _value) {
+        switch (id) {
+            case "amount":
+                Particle.setAmount(_value);
+                break;
+            case "size":
+                Particle.setRadii(_value);
+                break;
+            case "life":
+                Particle.setLife(_value);
+                break;
+        }
     }
 }
